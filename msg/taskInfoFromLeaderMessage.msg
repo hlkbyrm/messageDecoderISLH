@@ -1,0 +1,15 @@
+# The task's information to the task coordinator
+
+uint16 senderRobotID #robot id which encounters the task
+
+uint64 encounteringTime #The encountering time in timestamp form
+
+uint16 handlingDuration
+
+uint16 timeOutDuration
+
+string requiredResources # Required resources for this task
+
+float32 posX # The position of the task at x direction
+float32 posY # The position of the task at y direction
+

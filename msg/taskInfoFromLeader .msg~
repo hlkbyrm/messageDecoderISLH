@@ -1,0 +1,11 @@
+# The task's information to coalition leader
+
+string receiverName #robot name to which the message will be sent 
+
+string senderName #robot name which encounters the task
+
+float32 timeStamp #The encountering time
+
+float32 posX # The position of the task at x direction
+float32 posY # The position of the task at y direction
+

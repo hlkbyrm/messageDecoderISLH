@@ -1,0 +1,7 @@
+# raw messages from other nodes
+
+uint16 robotid # receiver id
+
+uint16 messageid 
+
+string message #message

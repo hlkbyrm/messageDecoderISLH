@@ -1,0 +1,7 @@
+# The incoming command message from coalition leader
+
+unint64 sendingTime #The sending time
+
+uint16 cmdType
+
+string message
