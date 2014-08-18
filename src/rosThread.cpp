@@ -104,16 +104,16 @@ void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
     switch(msg.messageid)
     {
     case MT_TASK_INFO_FROM_LEADER_TO_ROBOT:
-        sendCmdFromLeader(msg);
+        pubCmdFromLeader(msg);
         break;
     case MT_TASK_INFO_FROM_ROBOT_TO_LEADER:
-        sendTaskInfoFromRobot(msg);
+        pubTaskInfoFromRobot(msg);
         break;
     case MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR:
-        sendTaskInfoFromLeader(msg);
+        pubTaskInfoFromLeader(msg);
         break;
     case MT_TASK_INFO_FROM_COORDINATOR_TO_LEADER:
-        sendCmdFromCoordinator(msg);
+        pubCmdFromCoordinator(msg);
         break;
 /*    case MT_TASK_INFO_FROM_OLDLEADER_TO_NEWLEADER:
         sendNewLeaderInfoFromOldLeader(msg);
@@ -128,7 +128,7 @@ void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
 /*
  Incoming task info message from the coalition member robot to its leader
 */
-void RosThread::sendTaskInfoFromRobot(communicationISLH::inMessage msg)
+void RosThread::pubTaskInfoFromRobot(communicationISLH::inMessage msg)
 {
     messageDecoderISLH::taskInfoFromRobotMessage taskInfoMsg;
 
@@ -171,9 +171,9 @@ void RosThread::sendTaskInfoFromRobot(communicationISLH::inMessage msg)
 }
 
 /*
- Incoming command message received from the leader
+ Incoming command message from the leader
 */
-void RosThread::sendCmdFromLeader(communicationISLH::inMessage msg)
+void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 {
     QString package = QString::fromStdString(msg.message);
 
@@ -267,31 +267,86 @@ void RosThread::sendCmdFromLeader(communicationISLH::inMessage msg)
 
         }
 
-
     }
 
-
-
-    //
 }
 
 /*
  Incoming command message received from the task coordinator
 */
-void RosThread::sendCmdFromCoordinator(communicationISLH::inMessage msg)
+void RosThread::pubCmdFromCoordinator(communicationISLH::inMessage msg)
 {
-// messageDecoderISLH::cmdFromCoordinatorMessage msgCmd;
-// ...
-// messageCmdFromCoordinatorPub.publish(msgCmd);
+    messageDecoderISLH::cmdFromCoordinatorMessage msgCmd;
+
+    QString package = QString::fromStdString(msg.message);
+
+    // package = AA * messageType * messageSubType * datasize * data
+    // data = sendingTime & message
+
+    QStringList packageParts = package.split("*",QString::SkipEmptyParts);
+
+    msgCmd.messageTypeID = packageParts.at(2).toInt();
+
+    QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
+
+    msgCmd.sendingTime = dataParts.at(0).toUInt();
+
+    msgCmd.message = dataParts.at(1).toStdString();
+
+
+    messageCmdFromCoordinatorPub.publish(msgCmd);
+
 }
 
 /*
  Incoming task info message from the leader to the task coordinator
 */
-void RosThread::sendTaskInfoFromLeader(communicationISLH::inMessage msg)
+void RosThread::pubTaskInfoFromLeader(communicationISLH::inMessage msg)
 {
-   // messageDecoderISLH::taskInfoFromLeaderMessage inmsg;
+   messageDecoderISLH::taskInfoFromLeaderMessage taskInfoMsg;
 
+
+   QString package = QString::fromStdString(msg.message);
+
+   // package = AA * messageType * messageSubType * datasize * data
+   // data = sendingTime & message
+
+   QStringList packageParts = package.split("*",QString::SkipEmptyParts);
+
+   taskInfoMsg.infoTypeID = packageParts.at(2).toInt();
+
+   QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
+
+   taskInfoMsg.sendingTime = dataParts.at(0).toUInt();
+
+   QStringList messageParts = dataParts.at(1).split(";",QString::SkipEmptyParts);
+
+   taskInfoMsg.senderRobotID = messageParts.at(0).toUInt();
+
+   if (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE)
+   {
+
+       taskInfoMsg.taskUUID = messageParts.at(1).toStdString();
+
+       taskInfoMsg.posX = messageParts.at(2).toDouble();
+
+       taskInfoMsg.posY = messageParts.at(3).toDouble();
+
+       taskInfoMsg.encounteringTime = messageParts.at(4).toUInt();
+
+       taskInfoMsg.requiredResources = messageParts.at(5).toStdString();
+
+   }
+   else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
+   {
+       taskInfoMsg.taskUUID = messageParts.at(1).toStdString();
+   }
+   else if (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING)
+   {   
+       taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
+   }
+
+   messageTaskInfoFromLeaderPub.publish(taskInfoMsg);
 
 }
 
@@ -404,7 +459,45 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
 // Outgoing command message from the task coordinator to the leader(s)
 void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
 {
+    communicationISLH::outMessage outmsg;
 
+    int robotCnt = 0;
+    for(int i=0; i<msg.leaderRobotID.size(); i++)
+    {
+        // if the robot is also coalition leader,
+        // publish the message directly to the coalitionLeaderISL node
+        if (msg.leaderRobotID[i] == ownRobotID)
+        {
+            messageDecoderISLH::cmdFromCoordinatorMessage directMsg;
+
+            directMsg.sendingTime = msg.sendingTime;
+            directMsg.messageTypeID = outmsg.messageTypeID[i];
+            directMsg.message = outmsg.message[i];
+
+            messageCmdFromCoordinatorPub.publish(directMsg);
+        }
+        else
+        {
+            QString data;
+
+            data.append(QString::number(msg.sendingTime));
+
+            data.append('&');
+
+            data.append(QString::fromStdString(msg.message[i]));
+
+            outmsg.robotid[robotCnt] = msg.leaderRobotID[i];
+            outmsg.message[robotCnt] = makeDataPackage(MT_TASK_INFO_FROM_COORDINATOR_TO_LEADER, msg.messageTypeID[i], data);//msg.message[i];
+            outmsg.messageIndx[robotCnt] = robotCnt;
+            outmsg.messageTypeID[robotCnt] = msg.messageTypeID[i];
+
+        }
+    }
+
+    if (outmsg.robotid.size()>0)
+    {
+        messageOutPub.publish(outmsg);
+    }
 }
 
 //Outgoing task info message from the member robot to its leader
@@ -461,12 +554,7 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
             data.append(temp);
 
             data.append(",");
-/*
-            temp = QString::number(msg.infoMessageType);
-            data.append(temp);
 
-            data.append(",");
-*/
             temp = QString::fromStdString(msg.taskUUID);
             data.append(temp);
 
@@ -507,12 +595,7 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
             data.append(temp);
 
             data.append(",");
-/*
-            temp = QString::number(msg.infoMessageType);
-            data.append(temp);
 
-            data.append(",");
-*/
             temp = QString::fromStdString(msg.taskUUID);
             data.append(temp);
 
@@ -527,12 +610,7 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
             data.append(temp);
 
             data.append(",");
-/*
-            temp = QString::number(msg.infoMessageType);
-            data.append(temp);
 
-            data.append(",");
-*/
             temp = QString::number(msg.reachingTime);
             data.append(temp);
         }
@@ -547,7 +625,7 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
 }
 
 
-//
+//Outgoing task info message from the coalition leader to the task coordinator
 void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2CoordinatorMessage taskInfoMsg)
 {
     communicationISLH::outMessage outmsg;
@@ -560,7 +638,11 @@ void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2Coordinat
 
     if (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE)
     {
-        data.append("&");
+        data.append("&");        
+
+        data.append(QString::number(taskInfoMsg.senderRobotID));
+
+        data.append(";");
 
         data.append(QString::fromStdString(taskInfoMsg.taskUUID));
 
@@ -586,11 +668,19 @@ void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2Coordinat
 
         data.append("&");
 
+        data.append(QString::number(taskInfoMsg.senderRobotID));
+
+        data.append(";");
+
         data.append(QString::fromStdString(taskInfoMsg.taskUUID));
     }
     else if (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING)
     {
         data.append("&");
+
+        data.append(QString::number(taskInfoMsg.senderRobotID));
+
+        data.append(";");
 
         data.append(QString::fromStdString(taskInfoMsg.extraMsg));
     }

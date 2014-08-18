@@ -103,13 +103,13 @@ private:
 
      void handleIncomingMessage(communicationISLH::inMessage msg);
 
-     void sendTaskInfoFromRobot(communicationISLH::inMessage msg);
+     void pubTaskInfoFromRobot(communicationISLH::inMessage msg);
 
-     void sendCmdFromLeader(communicationISLH::inMessage msg);
+     void pubCmdFromLeader(communicationISLH::inMessage msg);
 
-     void sendTaskInfoFromLeader(communicationISLH::inMessage msg);
+     void pubTaskInfoFromLeader(communicationISLH::inMessage msg);
 
-     void sendCmdFromCoordinator(communicationISLH::inMessage msg);
+     void pubCmdFromCoordinator(communicationISLH::inMessage msg);
 
      //void sendNewLeaderInfoFromOldLeader(communicationISLH::inMessage msg);
 
