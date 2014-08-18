@@ -1,7 +1,6 @@
 #include <ros/ros.h>
 #include <communicationISLH/inMessage.h>
 #include <communicationISLH/outMessage.h>
-#include <messageDecoderISLH/rawMessage.h>
 #include <taskHandlerISLH/taskInfo2LeaderMessage.h>
 #include <messageDecoderISLH/cmdFromLeaderMessage.h>
 #include <messageDecoderISLH/cmdFromCoordinatorMessage.h>
