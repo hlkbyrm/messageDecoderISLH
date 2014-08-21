@@ -336,12 +336,30 @@ void RosThread::pubTaskInfoFromLeader(communicationISLH::inMessage msg)
 
        taskInfoMsg.requiredResources = messageParts.at(5).toStdString();
 
+       taskInfoMsg.encounteringRobotID = messageParts.at(6).toUInt();
+
+   }
+   else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
+   {
+       taskInfoMsg.taskUUID = messageParts.at(1).toStdString();
+
+       taskInfoMsg.posX = messageParts.at(2).toDouble();
+
+       taskInfoMsg.posY = messageParts.at(3).toDouble();
+
+       taskInfoMsg.encounteringTime = messageParts.at(4).toUInt();
+
+       taskInfoMsg.requiredResources = messageParts.at(5).toStdString();
+
+       taskInfoMsg.encounteringRobotID = messageParts.at(6).toUInt();
+
+       taskInfoMsg.startHandlingTime = messageParts.at(7).toUInt();
    }
    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
    {
        taskInfoMsg.taskUUID = messageParts.at(1).toStdString();
    }
-   else if (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING)
+   else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) )
    {   
        taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
    }
@@ -662,6 +680,45 @@ void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2Coordinat
 
         data.append(QString::fromStdString(taskInfoMsg.taskResource));
 
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.encounteringRobotID));
+
+    }
+    else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
+    {
+        data.append("&");
+
+        data.append(QString::number(taskInfoMsg.senderRobotID));
+
+        data.append(";");
+
+        data.append(QString::fromStdString(taskInfoMsg.taskUUID));
+
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.posX));
+
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.posY));
+
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.encounteringTime));
+
+        data.append(";");
+
+        data.append(QString::fromStdString(taskInfoMsg.taskResource));
+
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.encounteringRobotID));
+
+        data.append(";");
+
+        data.append(QString::number(taskInfoMsg.startHandlingTime));
+
     }
     else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
     {
@@ -674,7 +731,7 @@ void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2Coordinat
 
         data.append(QString::fromStdString(taskInfoMsg.taskUUID));
     }
-    else if (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING)
+    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) )
     {
         data.append("&");
 

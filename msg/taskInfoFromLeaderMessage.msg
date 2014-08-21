@@ -4,9 +4,13 @@ uint64 sendingTime #The sending time
 
 uint16 infoTypeID
 
-uint16 senderRobotID #robot id which encounters the task
+uint16 senderRobotID # robot id of coalition leader 
+
+uint16 encounteringRobotID #robot id which encounters the task
 
 uint64 encounteringTime #The encountering time in timestamp form
+
+uint64 startHandlingTime #the time when the task starts being handled
 
 uint16 handlingDuration
 
