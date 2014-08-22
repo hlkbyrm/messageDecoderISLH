@@ -99,9 +99,14 @@ void RosThread::shutdownROS()
  handle the received message from another robot
 */
 void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
-{
+{    
+    QString package = QString::fromStdString(msg.message);
 
-    switch(msg.messageid)
+    QStringList packageParts = package.split("*",QString::SkipEmptyParts);
+
+    int messageType = packageParts.at(1).toInt();
+
+    switch(messageType)
     {
     case MT_TASK_INFO_FROM_LEADER_TO_ROBOT:
         pubCmdFromLeader(msg);
@@ -221,7 +226,7 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 
         QStringList messageParts = dataParts.at(1).split(":",QString::SkipEmptyParts);
 
-        if (messageParts.size() > 0) // I am new coalition leader
+        if (messageParts.size() > 1) // I am new coalition leader
         {
             messageDecoderISLH::newLeaderMessage msgNewLeader;
 
@@ -251,21 +256,22 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 
 */
         }
-        else // informs the coalition member of the new leader
-        {
-            messageDecoderISLH::cmdFromLeaderMessage msgCmd;
 
-            msgCmd.cmdTypeID = cmdMessageSubType;
+        // informs the coalition member of the new leader
 
-            QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
+        messageDecoderISLH::cmdFromLeaderMessage msgCmd;
 
-            msgCmd.sendingTime = dataParts.at(0).toUInt();
+        msgCmd.cmdTypeID = cmdMessageSubType;
 
-            msgCmd.cmdMessage = dataParts.at(1).toStdString();
+        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
 
-            messageCmdFromLeaderPub.publish(msgCmd);
+        msgCmd.sendingTime = messageSubParts.at(0).toUInt();
 
-        }
+        msgCmd.cmdMessage = messageSubParts.at(1).toStdString();
+
+        messageCmdFromLeaderPub.publish(msgCmd);
+
+
 
     }
 
