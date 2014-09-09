@@ -99,7 +99,7 @@ void RosThread::shutdownROS()
  handle the received message from another robot
 */
 void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
-{    
+{
     QString package = QString::fromStdString(msg.message);
 
     QStringList packageParts = package.split("*",QString::SkipEmptyParts);
@@ -143,7 +143,7 @@ void RosThread::pubTaskInfoFromRobot(communicationISLH::inMessage msg)
 
     int infoMessageSubType = packageParts.at(2).toInt();
 
-    QStringList dataParts = packageParts.at(4).split(",",QString::SkipEmptyParts);
+    QStringList dataParts = packageParts.at(4).split(";",QString::SkipEmptyParts);
 
     if (infoMessageSubType == INFO_R2L_NEW_TASK_INFO)
     {
@@ -405,7 +405,6 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
         temp = QString::fromStdString(msg.cmdMessage);
         data.append(temp);
 
-        int robotCnt = 0;
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
             if (ownRobotID == msg.receiverRobotID[i]) // If the receiver robot is itself, send the message to taskHandlerISLH directly
@@ -420,15 +419,13 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
             }
             else
             {
-                outmsg.messageIndx[robotCnt] = 0;
+                outmsg.messageIndx.push_back(0);
 
-                outmsg.robotid[robotCnt] = msg.receiverRobotID[i];
-
-                robotCnt = robotCnt + 1;
+                outmsg.robotid.push_back(msg.receiverRobotID[i]);
             }
         }
-        outmsg.messageTypeID[0] = MT_TASK_INFO_FROM_LEADER_TO_ROBOT;
-        outmsg.message[0] = makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data);
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
     }
     else if (msg.cmdTypeID == CMD_L2R_SPLIT_FROM_COALITION)
     {
@@ -437,13 +434,13 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
 
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
-            outmsg.messageIndx[i] = 0;
+            outmsg.messageIndx.push_back(0);
 
-            outmsg.robotid[i] = msg.receiverRobotID[i];
+            outmsg.robotid.push_back(msg.receiverRobotID[i]);
         }
 
-        outmsg.messageTypeID[0] = MT_TASK_INFO_FROM_LEADER_TO_ROBOT;
-        outmsg.message[0] = makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data);
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
     }
     else if (msg.cmdTypeID == CMD_L2R_LEADER_CHANGED)
     {
@@ -457,24 +454,24 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
             if (msg.receiverRobotID.at(i) != leaderID)
-                outmsg.messageIndx[i] = 0;
+                outmsg.messageIndx.push_back(0);
             else
-                outmsg.messageIndx[i] = 1;
+                outmsg.messageIndx.push_back(1);
 
-            outmsg.robotid[i] = msg.receiverRobotID[i];
+            outmsg.robotid.push_back(msg.receiverRobotID[i]);
 
         }
-        outmsg.messageTypeID[0] = MT_TASK_INFO_FROM_LEADER_TO_ROBOT;
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
 
         temp = QString::number(msg.sendingTime);
         temp = temp.append("&");
         temp = temp.append(cmdMessageParts.at(0));
-        outmsg.message[0] = makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
 
         temp = QString::number(msg.sendingTime);
         temp = temp.append("&");
         temp = temp.append(cmdMessageStr);
-        outmsg.message[1] = makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
     }
 
     messageOutPub.publish(outmsg);
@@ -495,8 +492,8 @@ void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
             messageDecoderISLH::cmdFromCoordinatorMessage directMsg;
 
             directMsg.sendingTime = msg.sendingTime;
-            directMsg.messageTypeID = outmsg.messageTypeID[i];
-            directMsg.message = outmsg.message[i];
+            directMsg.messageTypeID = msg.messageTypeID[i];
+            directMsg.message = msg.message[i];
 
             messageCmdFromCoordinatorPub.publish(directMsg);
         }
@@ -510,11 +507,11 @@ void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
 
             data.append(QString::fromStdString(msg.message[i]));
 
-            outmsg.robotid[robotCnt] = msg.leaderRobotID[i];
-            outmsg.message[robotCnt] = makeDataPackage(MT_TASK_INFO_FROM_COORDINATOR_TO_LEADER, msg.messageTypeID[i], data);//msg.message[i];
-            outmsg.messageIndx[robotCnt] = robotCnt;
-            outmsg.messageTypeID[robotCnt] = msg.messageTypeID[i];
-
+            outmsg.robotid.push_back(msg.leaderRobotID[i]);
+            outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_COORDINATOR_TO_LEADER, msg.messageTypeID[i], data));//msg.message[i];
+            outmsg.messageIndx.push_back(robotCnt);
+            outmsg.messageTypeID.push_back(msg.messageTypeID[i]);
+            robotCnt++;
         }
     }
 
@@ -527,7 +524,6 @@ void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
 //Outgoing task info message from the member robot to its leader
 void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
 {
-
     // If the robot is coaltion leader,
     // publish the message to the coalitionLeaderISLH node
     if (ownRobotID==leaderRobotID)
@@ -573,57 +569,55 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
 
         if (msg.infoMessageType == INFO_R2L_NEW_TASK_INFO)
         {
-
             temp = QString::number(msg.senderRobotID);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::fromStdString(msg.taskUUID);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.encounteringTime);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.handlingDuration);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg. timeOutDuration);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::fromStdString(msg.requiredResources);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.posX);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.posY);
             data.append(temp);
-
         }
         else if (msg.infoMessageType == INFO_R2L_REACHED_TO_TASK)
         {
             temp = QString::number(msg.senderRobotID);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::fromStdString(msg.taskUUID);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.reachingTime);
             data.append(temp);
@@ -633,16 +627,16 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
             temp = QString::number(msg.senderRobotID);
             data.append(temp);
 
-            data.append(",");
+            data.append(";");
 
             temp = QString::number(msg.reachingTime);
             data.append(temp);
         }
 
-        outmsg.robotid[0] = msg.receiverRobotID;
-        outmsg.messageIndx[0] = 0;
-        outmsg.messageTypeID[0] = MT_TASK_INFO_FROM_ROBOT_TO_LEADER;
-        outmsg.message[0] = makeDataPackage(MT_TASK_INFO_FROM_ROBOT_TO_LEADER, msg.infoMessageType, data);
+        outmsg.robotid.push_back(msg.receiverRobotID);
+        outmsg.messageIndx.push_back(0);
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_ROBOT_TO_LEADER);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_ROBOT_TO_LEADER, msg.infoMessageType, data));
 
         messageOutPub.publish(outmsg);
     }
@@ -749,10 +743,10 @@ void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2Coordinat
     }
 
 
-    outmsg.robotid[0] = taskInfoMsg.receiverRobotID;
-    outmsg.messageIndx[0] = 0;
-    outmsg.messageTypeID[0] = MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR;
-    outmsg.message[0] = makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR, taskInfoMsg.infoTypeID, data);
+    outmsg.robotid.push_back(taskInfoMsg.receiverRobotID);
+    outmsg.messageIndx.push_back(0);
+    outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR);
+    outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR, taskInfoMsg.infoTypeID, data));
 
     messageOutPub.publish(outmsg);
 
