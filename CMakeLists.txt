@@ -7,6 +7,7 @@ project(messageDecoderISLH)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  geometry_msgs
   message_generation
 )
 
@@ -75,8 +76,9 @@ add_message_files(
   cmdFromCoordinatorMessage.msg
   cmd2RobotsMessage.msg
   newLeaderMessage.msg
+  targetPoseListMessage.msg
 )
-generate_messages(DEPENDENCIES std_msgs)
+generate_messages(DEPENDENCIES std_msgs geometry_msgs)
 
 ## Generate services in the 'srv' folder
 # add_service_files(

@@ -402,8 +402,17 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
     {
         data.append("&");
 
-        temp = QString::fromStdString(msg.cmdMessage);
-        data.append(temp);
+        if (msg.cmdTypeID == CMD_L2R_START_HANDLING)
+        {
+            temp = QString::fromStdString(msg.cmdMessage);
+            data.append(temp);
+        }
+        else
+        {
+            // ???????????
+            // ???????????
+            int doldur = 1;
+        }
 
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
@@ -413,7 +422,16 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
 
                 directMsg.cmdTypeID = msg.cmdTypeID;
                 directMsg.sendingTime = msg.sendingTime;
-                directMsg.cmdMessage = msg.cmdMessage;
+                if (msg.cmdTypeID == CMD_L2R_START_HANDLING)
+                {
+                    directMsg.cmdMessage = msg.cmdMessage;
+                }
+                else
+                {
+                    // ???????????
+                    // ???????????
+                    int doldur2 = 1;
+                }
 
                 messageCmdFromLeaderPub.publish(directMsg);
             }
