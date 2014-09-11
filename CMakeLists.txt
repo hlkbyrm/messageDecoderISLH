@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   geometry_msgs
-  message_generation
+  ISLH_msgs
 )
 
 SET(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -67,19 +67,6 @@ QT4_WRAP_CPP(QT_MOC_HPP ${QT_HEADERS})
 #   Message2.msg
 # )
 
-add_message_files(
-  DIRECTORY msg 
-  FILES
-  taskInfoFromRobotMessage.msg
-  taskInfoFromLeaderMessage.msg
-  cmdFromLeaderMessage.msg
-  cmdFromCoordinatorMessage.msg
-  cmd2RobotsMessage.msg
-  newLeaderMessage.msg
-  targetPoseListMessage.msg
-)
-generate_messages(DEPENDENCIES std_msgs geometry_msgs)
-
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
@@ -114,7 +101,7 @@ catkin_package(
 #  LIBRARIES messageDecoderISLH
 #  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
-   CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS ISLH_msgs
 )
 
 ###########

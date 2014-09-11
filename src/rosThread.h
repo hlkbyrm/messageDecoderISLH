@@ -1,15 +1,15 @@
 #include <ros/ros.h>
-#include <communicationISLH/inMessage.h>
-#include <communicationISLH/outMessage.h>
-#include <taskHandlerISLH/taskInfo2LeaderMessage.h>
-#include <messageDecoderISLH/cmdFromLeaderMessage.h>
-#include <messageDecoderISLH/cmdFromCoordinatorMessage.h>
-#include <coalitionLeaderISLH/cmd2RobotsFromLeaderMessage.h>
-#include <messageDecoderISLH/taskInfoFromLeaderMessage.h>
-#include <taskCoordinatorISLH/cmd2LeadersMessage.h>
-#include <messageDecoderISLH/taskInfoFromRobotMessage.h>
-#include <coalitionLeaderISLH/taskInfo2CoordinatorMessage.h>
-#include <messageDecoderISLH/newLeaderMessage.h>
+#include <ISLH_msgs/inMessage.h>
+#include <ISLH_msgs/outMessage.h>
+#include <ISLH_msgs/taskInfo2LeaderMessage.h>
+#include <ISLH_msgs/cmdFromLeaderMessage.h>
+#include <ISLH_msgs/cmdFromCoordinatorMessage.h>
+#include <ISLH_msgs/cmd2RobotsFromLeaderMessage.h>
+#include <ISLH_msgs/taskInfoFromLeaderMessage.h>
+#include <ISLH_msgs/cmd2LeadersMessage.h>
+#include <ISLH_msgs/taskInfoFromRobotMessage.h>
+#include <ISLH_msgs/taskInfo2CoordinatorMessage.h>
+#include <ISLH_msgs/newLeaderMessage.h>
 #include <QTimer>
 #include <QVector>
 #include <QThread>
@@ -101,25 +101,25 @@ private:
 
      ros::Subscriber mesageTaskInfo2CoordinatorSub;
 
-     void handleIncomingMessage(communicationISLH::inMessage msg);
+     void handleIncomingMessage(ISLH_msgs::inMessage msg);
 
-     void pubTaskInfoFromRobot(communicationISLH::inMessage msg);
+     void pubTaskInfoFromRobot(ISLH_msgs::inMessage msg);
 
-     void pubCmdFromLeader(communicationISLH::inMessage msg);
+     void pubCmdFromLeader(ISLH_msgs::inMessage msg);
 
-     void pubTaskInfoFromLeader(communicationISLH::inMessage msg);
+     void pubTaskInfoFromLeader(ISLH_msgs::inMessage msg);
 
-     void pubCmdFromCoordinator(communicationISLH::inMessage msg);
+     void pubCmdFromCoordinator(ISLH_msgs::inMessage msg);
 
      //void sendNewLeaderInfoFromOldLeader(communicationISLH::inMessage msg);
 
-     void sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage taskInfoMsg);
+     void sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage taskInfoMsg);
 
-     void sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage msg);
+     void sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg);
 
-     void sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg);
+     void sendCmd2Leaders(ISLH_msgs::cmd2LeadersMessage msg);
 
-     void sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2CoordinatorMessage taskInfoMsg);
+     void sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage taskInfoMsg);
 
      std::string makeDataPackage(int messageType, int messageSubType, QString data);
 

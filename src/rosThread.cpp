@@ -44,18 +44,18 @@ void RosThread::work(){
     ros::Rate loop(10);
 
     messageInSub = n.subscribe("communicationISLH/messageIn",5,&RosThread::handleIncomingMessage,this);
-    messageOutPub = n.advertise<communicationISLH::outMessage>("messageDecoderISLH/messageOut",5);
+    messageOutPub = n.advertise<ISLH_msgs::outMessage>("messageDecoderISLH/messageOut",5);
 
 
-    messageCmdFromCoordinatorPub= n.advertise<messageDecoderISLH::cmdFromCoordinatorMessage>("messageDecoderISLH/cmdFromCoordinator",5);
+    messageCmdFromCoordinatorPub= n.advertise<ISLH_msgs::cmdFromCoordinatorMessage>("messageDecoderISLH/cmdFromCoordinator",5);
 
-    messageCmdFromLeaderPub = n.advertise<messageDecoderISLH::cmdFromLeaderMessage>("messageDecoderISLH/cmdFromLeader",5);
+    messageCmdFromLeaderPub = n.advertise<ISLH_msgs::cmdFromLeaderMessage>("messageDecoderISLH/cmdFromLeader",5);
 
-    messageTaskInfoFromLeaderPub = n.advertise<messageDecoderISLH::taskInfoFromLeaderMessage>("messageDecoderISLH/taskInfoFromLeader", 5);
+    messageTaskInfoFromLeaderPub = n.advertise<ISLH_msgs::taskInfoFromLeaderMessage>("messageDecoderISLH/taskInfoFromLeader", 5);
 
-    messageTaskInfoFromRobotPub = n.advertise<messageDecoderISLH::taskInfoFromRobotMessage>("messageDecoderISLH/taskInfoFromRobot",5);
+    messageTaskInfoFromRobotPub = n.advertise<ISLH_msgs::taskInfoFromRobotMessage>("messageDecoderISLH/taskInfoFromRobot",5);
 
-    messageNewLeaderPub = n.advertise<messageDecoderISLH::newLeaderMessage>("messageDecoderISLH/newLeader",5);
+    messageNewLeaderPub = n.advertise<ISLH_msgs::newLeaderMessage>("messageDecoderISLH/newLeader",5);
 
 
 
@@ -98,7 +98,7 @@ void RosThread::shutdownROS()
 /*
  handle the received message from another robot
 */
-void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
+void RosThread::handleIncomingMessage(ISLH_msgs::inMessage msg)
 {
     QString package = QString::fromStdString(msg.message);
 
@@ -133,9 +133,9 @@ void RosThread::handleIncomingMessage(communicationISLH::inMessage msg)
 /*
  Incoming task info message from the coalition member robot to its leader
 */
-void RosThread::pubTaskInfoFromRobot(communicationISLH::inMessage msg)
+void RosThread::pubTaskInfoFromRobot(ISLH_msgs::inMessage msg)
 {
-    messageDecoderISLH::taskInfoFromRobotMessage taskInfoMsg;
+    ISLH_msgs::taskInfoFromRobotMessage taskInfoMsg;
 
     QString package = QString::fromStdString(msg.message);
 
@@ -178,7 +178,7 @@ void RosThread::pubTaskInfoFromRobot(communicationISLH::inMessage msg)
 /*
  Incoming command message from the leader
 */
-void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
+void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 {
     QString package = QString::fromStdString(msg.message);
 
@@ -194,7 +194,7 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
     if ( (cmdMessageSubType == CMD_L2R_START_HANDLING) || (cmdMessageSubType == CMD_L2R_MOVE_TO_TASK_SITE) || (cmdMessageSubType == CMD_L2R_MOVE_TO_GOAL_POSE) )
     {        
 
-        messageDecoderISLH::cmdFromLeaderMessage msgCmd;
+        ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
 
@@ -208,7 +208,7 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
     else if (cmdMessageSubType == CMD_L2R_SPLIT_FROM_COALITION)
     {
 
-        messageDecoderISLH::cmdFromLeaderMessage msgCmd;
+        ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
 
@@ -228,7 +228,7 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 
         if (messageParts.size() > 1) // I am new coalition leader
         {
-            messageDecoderISLH::newLeaderMessage msgNewLeader;
+            ISLH_msgs::newLeaderMessage msgNewLeader;
 
             msgNewLeader.sendingTime = dataParts.at(0).toUInt();
 
@@ -259,7 +259,7 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 
         // informs the coalition member of the new leader
 
-        messageDecoderISLH::cmdFromLeaderMessage msgCmd;
+        ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
 
@@ -280,9 +280,9 @@ void RosThread::pubCmdFromLeader(communicationISLH::inMessage msg)
 /*
  Incoming command message received from the task coordinator
 */
-void RosThread::pubCmdFromCoordinator(communicationISLH::inMessage msg)
+void RosThread::pubCmdFromCoordinator(ISLH_msgs::inMessage msg)
 {
-    messageDecoderISLH::cmdFromCoordinatorMessage msgCmd;
+    ISLH_msgs::cmdFromCoordinatorMessage msgCmd;
 
     QString package = QString::fromStdString(msg.message);
 
@@ -307,9 +307,9 @@ void RosThread::pubCmdFromCoordinator(communicationISLH::inMessage msg)
 /*
  Incoming task info message from the leader to the task coordinator
 */
-void RosThread::pubTaskInfoFromLeader(communicationISLH::inMessage msg)
+void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
 {
-   messageDecoderISLH::taskInfoFromLeaderMessage taskInfoMsg;
+   ISLH_msgs::taskInfoFromLeaderMessage taskInfoMsg;
 
 
    QString package = QString::fromStdString(msg.message);
@@ -387,10 +387,10 @@ void RosThread::sendNewLeaderInfoFromOldLeader(communicationISLH::inMessage msg)
 /*
  Outgoing command message from the leader to the robot(s)
 */
-void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage msg)
+void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 {
 
-    communicationISLH::outMessage outmsg;
+    ISLH_msgs::outMessage outmsg;
 
     QString data;
     QString temp;
@@ -418,7 +418,7 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
         {
             if (ownRobotID == msg.receiverRobotID[i]) // If the receiver robot is itself, send the message to taskHandlerISLH directly
             {
-                messageDecoderISLH::cmdFromLeaderMessage directMsg;
+                ISLH_msgs::cmdFromLeaderMessage directMsg;
 
                 directMsg.cmdTypeID = msg.cmdTypeID;
                 directMsg.sendingTime = msg.sendingTime;
@@ -496,9 +496,9 @@ void RosThread::sendCmd2Robots(coalitionLeaderISLH::cmd2RobotsFromLeaderMessage 
 }
 
 // Outgoing command message from the task coordinator to the leader(s)
-void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
+void RosThread::sendCmd2Leaders(ISLH_msgs::cmd2LeadersMessage msg)
 {
-    communicationISLH::outMessage outmsg;
+    ISLH_msgs::outMessage outmsg;
 
     int robotCnt = 0;
     for(int i=0; i<msg.leaderRobotID.size(); i++)
@@ -507,7 +507,7 @@ void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
         // publish the message directly to the coalitionLeaderISL node
         if (msg.leaderRobotID[i] == ownRobotID)
         {
-            messageDecoderISLH::cmdFromCoordinatorMessage directMsg;
+            ISLH_msgs::cmdFromCoordinatorMessage directMsg;
 
             directMsg.sendingTime = msg.sendingTime;
             directMsg.messageTypeID = msg.messageTypeID[i];
@@ -540,13 +540,13 @@ void RosThread::sendCmd2Leaders(taskCoordinatorISLH::cmd2LeadersMessage msg)
 }
 
 //Outgoing task info message from the member robot to its leader
-void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
+void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 {
     // If the robot is coaltion leader,
     // publish the message to the coalitionLeaderISLH node
     if (ownRobotID==leaderRobotID)
     {
-        messageDecoderISLH::taskInfoFromRobotMessage directMsg;
+        ISLH_msgs::taskInfoFromRobotMessage directMsg;
 
         if (msg.infoMessageType == INFO_R2L_NEW_TASK_INFO)
         {
@@ -580,7 +580,7 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
     // send the message to the leader through wireless communication
     else
     {
-        communicationISLH::outMessage outmsg;
+        ISLH_msgs::outMessage outmsg;
 
         QString data;
         QString temp;
@@ -662,9 +662,9 @@ void RosThread::sendTaskInfo2Leader(taskHandlerISLH::taskInfo2LeaderMessage msg)
 
 
 //Outgoing task info message from the coalition leader to the task coordinator
-void RosThread::sendTaskInfo2Coordinator(coalitionLeaderISLH::taskInfo2CoordinatorMessage taskInfoMsg)
+void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage taskInfoMsg)
 {
-    communicationISLH::outMessage outmsg;
+    ISLH_msgs::outMessage outmsg;
 
     QString data;
     QString temp;

@@ -1,7 +1,0 @@
-# The incoming command message from coalition leader
-
-float32 sendingTime #The sending time
-
-uint16 cmdTypeID
-
-string cmdMessage
