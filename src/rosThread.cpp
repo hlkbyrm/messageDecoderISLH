@@ -690,7 +690,7 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
     temp = QString::number(taskInfoMsg.sendingTime);
     data.append(temp);
 
-    if (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE)
+    if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (INFO_L2C_WAITING_TASK_SITE_POSE) )
     {
         data.append("&");        
 
@@ -767,7 +767,7 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
 
         data.append(QString::fromStdString(taskInfoMsg.taskUUID));
     }
-    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) )
+    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) )
     {
         data.append("&");
 
