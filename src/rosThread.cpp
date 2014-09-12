@@ -398,21 +398,12 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
     temp = QString::number(msg.sendingTime);
     data.append(temp);
 
-    if ( (msg.cmdTypeID == CMD_L2R_START_HANDLING) || (msg.cmdTypeID == CMD_L2R_MOVE_TO_TASK_SITE) || (msg.cmdTypeID == CMD_L2R_MOVE_TO_GOAL_POSE) )
+    if ( (msg.cmdTypeID == CMD_L2R_START_HANDLING) )
     {
         data.append("&");
 
-        if (msg.cmdTypeID == CMD_L2R_START_HANDLING)
-        {
-            temp = QString::fromStdString(msg.cmdMessage);
-            data.append(temp);
-        }
-        else
-        {
-            // ???????????
-            // ???????????
-            int doldur = 1;
-        }
+        temp = QString::fromStdString(msg.cmdMessage);
+        data.append(temp);
 
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
@@ -422,16 +413,7 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 
                 directMsg.cmdTypeID = msg.cmdTypeID;
                 directMsg.sendingTime = msg.sendingTime;
-                if (msg.cmdTypeID == CMD_L2R_START_HANDLING)
-                {
-                    directMsg.cmdMessage = msg.cmdMessage;
-                }
-                else
-                {
-                    // ???????????
-                    // ???????????
-                    int doldur2 = 1;
-                }
+                directMsg.cmdMessage = msg.cmdMessage;
 
                 messageCmdFromLeaderPub.publish(directMsg);
             }
@@ -444,6 +426,42 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
         }
         outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
+    }
+    else if ( (msg.cmdTypeID == CMD_L2R_MOVE_TO_TASK_SITE) || (msg.cmdTypeID == CMD_L2R_MOVE_TO_GOAL_POSE) ){
+        data.append("&");
+
+        temp = QString::fromStdString(msg.cmdMessage);
+
+        QStringList messages = temp.split(";", QString::SkipEmptyParts);
+        int idx = 0;
+
+        for(int i=0; i < messages.size(); i++)
+        {
+            QStringList messageParts = messages.at(i).split(",", QString::SkipEmptyParts);
+            int robotIdx = messageParts.at(0).toInt();
+            QString message = QString("%1,%2").arg(messageParts.at(1)).arg(messageParts.at(2));
+            if (ownRobotID == robotIdx) // If the receiver robot is itself, send the message to taskHandlerISLH directly
+            {
+                ISLH_msgs::cmdFromLeaderMessage directMsg;
+
+                directMsg.cmdTypeID = msg.cmdTypeID;
+                directMsg.sendingTime = msg.sendingTime;
+                directMsg.cmdMessage = message.toStdString();
+
+                messageCmdFromLeaderPub.publish(directMsg);
+            }
+            else
+            {
+                outmsg.messageIndx.push_back(idx);
+
+                outmsg.robotid.push_back(robotIdx);
+
+                outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
+                outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, QString("%1%2").arg(data).arg(message)));
+
+                idx++;
+            }
+        }
     }
     else if (msg.cmdTypeID == CMD_L2R_SPLIT_FROM_COALITION)
     {
