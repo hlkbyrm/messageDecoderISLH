@@ -37,6 +37,7 @@ enum Robot2LeaderInfoMgs
 
 enum Leader2RobotCmdMsgs
 {
+    CMD_L2R_START_OR_STOP_MISSION = 0,
     CMD_L2R_START_HANDLING = 1,
     CMD_L2R_MOVE_TO_TASK_SITE = 2,
     CMD_L2R_MOVE_TO_GOAL_POSE = 3,

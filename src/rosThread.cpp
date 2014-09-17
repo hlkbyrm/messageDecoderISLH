@@ -398,7 +398,7 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
     temp = QString::number(msg.sendingTime);
     data.append(temp);
 
-    if ( (msg.cmdTypeID == CMD_L2R_START_HANDLING) )
+    if  ( (msg.cmdTypeID == CMD_L2R_START_HANDLING) || (msg.cmdTypeID == CMD_L2R_START_OR_STOP_MISSION) )
     {
         data.append("&");
 
