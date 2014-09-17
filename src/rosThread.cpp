@@ -57,6 +57,8 @@ void RosThread::work(){
 
     messageNewLeaderPub = n.advertise<ISLH_msgs::newLeaderMessage>("messageDecoderISLH/newLeader",5);
 
+    messageTargetPoseListPub = n.advertise<ISLH_msgs::targetPoseListMessage>("messageDecoderISLH/targetPoseList", 5);
+
 
 
     messageTaskInfo2LeaderSub = n.subscribe("taskHandlerISLH/taskInfo2Leader",5,&RosThread::sendTaskInfo2Leader,this);
@@ -270,9 +272,28 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
         msgCmd.cmdMessage = messageSubParts.at(1).toStdString();
 
         messageCmdFromLeaderPub.publish(msgCmd);
+    }
+    else if (cmdMessageSubType == CMD_L2R_NEW_ALL_TARGET_POSES)
+    {
+        ISLH_msgs::targetPoseListMessage targetPoseListMsg;
 
+        QString msgStr = QString::fromStdString(msg.message);
 
+          QStringList messageParts = msgStr.split(";", QString::SkipEmptyParts);
+          for(int mpIndx=0; mpIndx < messageParts.size(); mpIndx++)
+          {
+              QStringList messageSubParts = messageParts.at(mpIndx).split(",", QString::SkipEmptyParts);
 
+              targetPoseListMsg.robotIDs.push_back(messageSubParts.at(0).toInt());
+
+              geometry_msgs::Pose2D poseTmp;
+              poseTmp.x = messageSubParts.at(1).toDouble();
+              poseTmp.y = messageSubParts.at(2).toDouble();
+
+              targetPoseListMsg.targetPoses.push_back(poseTmp);
+          }
+
+          messageTargetPoseListPub.publish(targetPoseListMsg);
     }
 
 }
@@ -508,6 +529,46 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
         temp = temp.append("&");
         temp = temp.append(cmdMessageStr);
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
+    }
+    else if (msg.cmdTypeID == CMD_L2R_NEW_ALL_TARGET_POSES)
+    {
+        data.append("&");
+
+        temp = QString::fromStdString(msg.cmdMessage);
+        data.append(temp);
+
+        for(int i=0; i<msg.receiverRobotID.size(); i++)
+        {
+            if (msg.receiverRobotID.at(i) == ownRobotID)
+            {
+                ISLH_msgs::targetPoseListMessage targetPoseListMsg;
+
+                QString msgStr = QString::fromStdString(msg.cmdMessage);
+
+                  QStringList messageParts = msgStr.split(";", QString::SkipEmptyParts);
+                  for(int mpIndx=0; mpIndx < messageParts.size(); mpIndx++)
+                  {
+                      QStringList messageSubParts = messageParts.at(mpIndx).split(",", QString::SkipEmptyParts);
+
+                      targetPoseListMsg.robotIDs.push_back(messageSubParts.at(0).toInt());
+
+                      geometry_msgs::Pose2D poseTmp;
+                      poseTmp.x = messageSubParts.at(1).toDouble();
+                      poseTmp.y = messageSubParts.at(2).toDouble();
+
+                      targetPoseListMsg.targetPoses.push_back(poseTmp);
+                  }
+
+                  messageTargetPoseListPub.publish(targetPoseListMsg);
+            }
+            else
+            {
+                outmsg.robotid.push_back(msg.receiverRobotID.at(i));
+
+                outmsg.messageIndx.push_back(0);
+            }
+        }
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
     }
 
     messageOutPub.publish(outmsg);

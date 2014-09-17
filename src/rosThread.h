@@ -10,6 +10,7 @@
 #include <ISLH_msgs/taskInfoFromRobotMessage.h>
 #include <ISLH_msgs/taskInfo2CoordinatorMessage.h>
 #include <ISLH_msgs/newLeaderMessage.h>
+#include <ISLH_msgs/targetPoseListMessage.h>
 #include <QTimer>
 #include <QVector>
 #include <QThread>
@@ -42,7 +43,8 @@ enum Leader2RobotCmdMsgs
     CMD_L2R_MOVE_TO_TASK_SITE = 2,
     CMD_L2R_MOVE_TO_GOAL_POSE = 3,
     CMD_L2R_SPLIT_FROM_COALITION = 4,
-    CMD_L2R_LEADER_CHANGED = 5
+    CMD_L2R_LEADER_CHANGED = 5,
+    CMD_L2R_NEW_ALL_TARGET_POSES = 6
 };
 
 enum Leader2CoordinatorInfoMgs
@@ -92,6 +94,9 @@ private:
 
      // Send coalitionLeaderISH the new leader info message received from the old leader
      ros::Publisher messageNewLeaderPub;
+
+     // Send target pose list to navigationISLH
+     ros::Publisher messageTargetPoseListPub;
 
      // Send command to robots in the coalition
      ros::Subscriber messageCmd2RobotsSub;
