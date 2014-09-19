@@ -137,6 +137,8 @@ private:
 
      int leaderRobotID;
 
+     int coordinatorRobotID;
+
 
 public slots:
      void work();

@@ -390,6 +390,10 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
    {   
        taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
    }
+   else if  ( (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE) )
+   {
+       taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
+   }
 
    messageTaskInfoFromLeaderPub.publish(taskInfoMsg);
 
@@ -743,110 +747,135 @@ void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 //Outgoing task info message from the coalition leader to the task coordinator
 void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage taskInfoMsg)
 {
-    ISLH_msgs::outMessage outmsg;
 
-    QString data;
-    QString temp;
-
-    temp = QString::number(taskInfoMsg.sendingTime);
-    data.append(temp);
-
-    if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (INFO_L2C_WAITING_TASK_SITE_POSE) )
+    // If the robot is coodinator,
+    // publish the message to the taskCoordinatorISLH node
+    if (ownRobotID==taskInfoMsg.receiverRobotID)
     {
-        data.append("&");        
+        ISLH_msgs::taskInfoFromLeaderMessage directMsg;
 
-        data.append(QString::number(taskInfoMsg.senderRobotID));
+        directMsg.encounteringRobotID = taskInfoMsg.encounteringRobotID;
+        directMsg.encounteringTime = taskInfoMsg.encounteringTime;
+        directMsg.extraMsg = taskInfoMsg.extraMsg;
+        //directMsg.handlingDuration =  not assigned
+        directMsg.infoTypeID = taskInfoMsg.infoTypeID;
+        directMsg.posX = taskInfoMsg.posX;
+        directMsg.posY = taskInfoMsg.posY;
+        directMsg.requiredResources = taskInfoMsg.taskResource;
+        directMsg.senderRobotID = taskInfoMsg.senderRobotID;
+        directMsg.sendingTime = taskInfoMsg.sendingTime;
+        directMsg.startHandlingTime = taskInfoMsg.startHandlingTime;
+        directMsg.taskUUID = taskInfoMsg.taskUUID;
+        // directMsg.timeOutDuration = not assigned
 
-        data.append(";");
-
-        data.append(QString::fromStdString(taskInfoMsg.taskUUID));
-
-        data.append(";");
-
-        data.append(QString::number(taskInfoMsg.posX));
-
-        data.append(";");
-
-        data.append(QString::number(taskInfoMsg.posY));
-
-        data.append(";");
-
-        data.append(QString::number(taskInfoMsg.encounteringTime));
-
-        data.append(";");
-
-        data.append(QString::fromStdString(taskInfoMsg.taskResource));
-
-        data.append(";");
-
-        data.append(QString::number(taskInfoMsg.encounteringRobotID));
-
+        messageTaskInfoFromLeaderPub.publish(directMsg);
     }
-    else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
+    else
     {
-        data.append("&");
+        ISLH_msgs::outMessage outmsg;
 
-        data.append(QString::number(taskInfoMsg.senderRobotID));
+        QString data;
+        QString temp;
 
-        data.append(";");
+        temp = QString::number(taskInfoMsg.sendingTime);
+        data.append(temp);
 
-        data.append(QString::fromStdString(taskInfoMsg.taskUUID));
+        if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE)  || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) )
+        {
+            data.append("&");
 
-        data.append(";");
+            data.append(QString::number(taskInfoMsg.senderRobotID));
 
-        data.append(QString::number(taskInfoMsg.posX));
+            data.append(";");
 
-        data.append(";");
+            data.append(QString::fromStdString(taskInfoMsg.taskUUID));
 
-        data.append(QString::number(taskInfoMsg.posY));
+            data.append(";");
 
-        data.append(";");
+            data.append(QString::number(taskInfoMsg.posX));
 
-        data.append(QString::number(taskInfoMsg.encounteringTime));
+            data.append(";");
 
-        data.append(";");
+            data.append(QString::number(taskInfoMsg.posY));
 
-        data.append(QString::fromStdString(taskInfoMsg.taskResource));
+            data.append(";");
 
-        data.append(";");
+            data.append(QString::number(taskInfoMsg.encounteringTime));
 
-        data.append(QString::number(taskInfoMsg.encounteringRobotID));
+            data.append(";");
 
-        data.append(";");
+            data.append(QString::fromStdString(taskInfoMsg.taskResource));
 
-        data.append(QString::number(taskInfoMsg.startHandlingTime));
+            data.append(";");
 
+            data.append(QString::number(taskInfoMsg.encounteringRobotID));
+
+        }
+        else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
+        {
+            data.append("&");
+
+            data.append(QString::number(taskInfoMsg.senderRobotID));
+
+            data.append(";");
+
+            data.append(QString::fromStdString(taskInfoMsg.taskUUID));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.posX));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.posY));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.encounteringTime));
+
+            data.append(";");
+
+            data.append(QString::fromStdString(taskInfoMsg.taskResource));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.encounteringRobotID));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.startHandlingTime));
+
+        }
+        else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
+        {
+
+            data.append("&");
+
+            data.append(QString::number(taskInfoMsg.senderRobotID));
+
+            data.append(";");
+
+            data.append(QString::fromStdString(taskInfoMsg.taskUUID));
+        }
+        else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) )
+        {
+            data.append("&");
+
+            data.append(QString::number(taskInfoMsg.senderRobotID));
+
+            data.append(";");
+
+            data.append(QString::fromStdString(taskInfoMsg.extraMsg));
+        }
+
+
+        outmsg.robotid.push_back(taskInfoMsg.receiverRobotID);
+        outmsg.messageIndx.push_back(0);
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR);
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR, taskInfoMsg.infoTypeID, data));
+
+        messageOutPub.publish(outmsg);
     }
-    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
-    {
-
-        data.append("&");
-
-        data.append(QString::number(taskInfoMsg.senderRobotID));
-
-        data.append(";");
-
-        data.append(QString::fromStdString(taskInfoMsg.taskUUID));
-    }
-    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING) || (taskInfoMsg.infoTypeID == INFO_L2C_SPLITTING_AND_LEADER_CHANGED) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) )
-    {
-        data.append("&");
-
-        data.append(QString::number(taskInfoMsg.senderRobotID));
-
-        data.append(";");
-
-        data.append(QString::fromStdString(taskInfoMsg.extraMsg));
-    }
-
-
-    outmsg.robotid.push_back(taskInfoMsg.receiverRobotID);
-    outmsg.messageIndx.push_back(0);
-    outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR);
-    outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR, taskInfoMsg.infoTypeID, data));
-
-    messageOutPub.publish(outmsg);
-
 
 }
 
@@ -972,6 +1001,10 @@ bool RosThread::readConfigFile(QString filename)
     }
     else
     {
+
+        coordinatorRobotID = result["taskCoordinatorRobotID"].toInt();
+        qDebug()<< " coordinatorRobotID " << coordinatorRobotID;
+
         ownRobotID = result["robotID"].toInt();
 
         leaderRobotID = ownRobotID;
