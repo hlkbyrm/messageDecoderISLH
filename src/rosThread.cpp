@@ -240,27 +240,29 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
             messageNewLeaderPub.publish(msgNewLeader);
 
-
-            /*
-            numOfCoalMmbrs = dataParts.at(1).toInt();
-
-            //coalition members' info
-            //robotID1;res1,res2,..,resn;posex,posey: ...
-            // dataParts.at(2) ... dataParts.at(numOfCoalMmbrs-1)
-            for(int i=2; i<numOfCoalMmbrs+1; i++)
-            {
-                //member robot's info
-                QStringList mmbrRobotData = dataParts.at(i).split(";",QString::SkipEmptyParts);
-            }
-
-            //the waiting tasks' info
-            //dataParts.at(2)
-
-*/
         }
 
         // informs the coalition member of the new leader
 
+        ISLH_msgs::cmdFromLeaderMessage msgCmd;
+
+        msgCmd.cmdTypeID = cmdMessageSubType;
+
+        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
+
+        msgCmd.sendingTime = messageSubParts.at(0).toUInt();
+
+        msgCmd.cmdMessage = messageSubParts.at(1).toStdString();
+
+        messageCmdFromLeaderPub.publish(msgCmd);
+    }
+    else if (cmdMessageSubType == CMD_L2R_I_AM_LEADER)
+    {
+        QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
+
+        QStringList messageParts = dataParts.at(1).split(":",QString::SkipEmptyParts);
+
+        // informs the coalition member's taskHandlerISLH of the new leader
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
@@ -524,15 +526,46 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
         }
         outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
 
+        // this message is sent to member robots
         temp = QString::number(msg.sendingTime);
         temp = temp.append("&");
         temp = temp.append(cmdMessageParts.at(0));
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
 
+        // this message is sent to the new leader
         temp = QString::number(msg.sendingTime);
         temp = temp.append("&");
         temp = temp.append(cmdMessageStr);
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
+    }
+    else if (msg.cmdTypeID == CMD_L2R_I_AM_LEADER)
+    {             
+        QString cmdMessageStr = QString::fromStdString(msg.cmdMessage);
+        QStringList cmdMessageParts = cmdMessageStr.split(":",QString::SkipEmptyParts);
+
+        for(int i=0; i<msg.receiverRobotID.size(); i++)
+        {
+            outmsg.messageIndx.push_back(0);
+
+            outmsg.robotid.push_back(msg.receiverRobotID[i]);
+        }
+        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
+
+        temp = QString::number(msg.sendingTime);
+        temp = temp.append("&");
+        temp = temp.append(cmdMessageParts.at(0));
+        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, temp));
+
+
+        // I am the leader
+        leaderRobotID = ownRobotID;
+
+        // informs  taskHandlerISLH of the new leader
+        ISLH_msgs::cmdFromLeaderMessage msgCmd;
+        msgCmd.cmdTypeID = msg.cmdTypeID;
+        msgCmd.sendingTime = msg.sendingTime;
+        msgCmd.cmdMessage = cmdMessageParts.at(0).toStdString();
+        messageCmdFromLeaderPub.publish(msgCmd);
     }
     else if (msg.cmdTypeID == CMD_L2R_NEW_ALL_TARGET_POSES)
     {
