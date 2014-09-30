@@ -44,30 +44,30 @@ void RosThread::work(){
     ros::Rate loop(10);
 
     messageInSub = n.subscribe("communicationISLH/messageIn",5,&RosThread::handleIncomingMessage,this);
-    messageOutPub = n.advertise<ISLH_msgs::outMessage>("messageDecoderISLH/messageOut",5);
+    messageOutPub = n.advertise<ISLH_msgs::outMessage>("messageDecoderISLH/messageOut",queueSize);
 
 
-    messageCmdFromCoordinatorPub= n.advertise<ISLH_msgs::cmdFromCoordinatorMessage>("messageDecoderISLH/cmdFromCoordinator",5);
+    messageCmdFromCoordinatorPub= n.advertise<ISLH_msgs::cmdFromCoordinatorMessage>("messageDecoderISLH/cmdFromCoordinator",queueSize);
 
-    messageCmdFromLeaderPub = n.advertise<ISLH_msgs::cmdFromLeaderMessage>("messageDecoderISLH/cmdFromLeader",5);
+    messageCmdFromLeaderPub = n.advertise<ISLH_msgs::cmdFromLeaderMessage>("messageDecoderISLH/cmdFromLeader", queueSize);
 
-    messageTaskInfoFromLeaderPub = n.advertise<ISLH_msgs::taskInfoFromLeaderMessage>("messageDecoderISLH/taskInfoFromLeader", 5);
+    messageTaskInfoFromLeaderPub = n.advertise<ISLH_msgs::taskInfoFromLeaderMessage>("messageDecoderISLH/taskInfoFromLeader", queueSize);
 
-    messageTaskInfoFromRobotPub = n.advertise<ISLH_msgs::taskInfoFromRobotMessage>("messageDecoderISLH/taskInfoFromRobot",5);
+    messageTaskInfoFromRobotPub = n.advertise<ISLH_msgs::taskInfoFromRobotMessage>("messageDecoderISLH/taskInfoFromRobot", queueSize);
 
-    messageNewLeaderPub = n.advertise<ISLH_msgs::newLeaderMessage>("messageDecoderISLH/newLeader",5);
+    messageNewLeaderPub = n.advertise<ISLH_msgs::newLeaderMessage>("messageDecoderISLH/newLeader", queueSize);
 
-    messageTargetPoseListPub = n.advertise<ISLH_msgs::targetPoseListMessage>("messageDecoderISLH/targetPoseList", 5);
+    messageTargetPoseListPub = n.advertise<ISLH_msgs::targetPoseListMessage>("messageDecoderISLH/targetPoseList", queueSize);
 
 
 
-    messageTaskInfo2LeaderSub = n.subscribe("taskHandlerISLH/taskInfo2Leader",5,&RosThread::sendTaskInfo2Leader,this);
+    messageTaskInfo2LeaderSub = n.subscribe("taskHandlerISLH/taskInfo2Leader", queueSize, &RosThread::sendTaskInfo2Leader,this);
 
-    messageCmd2RobotsSub = n.subscribe("coalitionLeaderISLH/cmd2Robots",5,&RosThread::sendCmd2Robots,this);
+    messageCmd2RobotsSub = n.subscribe("coalitionLeaderISLH/cmd2Robots", queueSize, &RosThread::sendCmd2Robots,this);
 
-    messageCmd2LeadersSub = n.subscribe("taskCoordinatorISLH/cmd2Leaders",5,&RosThread::sendCmd2Leaders,this);
+    messageCmd2LeadersSub = n.subscribe("taskCoordinatorISLH/cmd2Leaders", queueSize, &RosThread::sendCmd2Leaders,this);
 
-    mesageTaskInfo2CoordinatorSub = n.subscribe("coalitionLeaderISLH/taskInfo2Coordinator", 5,&RosThread::sendTaskInfo2Coordinator, this);
+    mesageTaskInfo2CoordinatorSub = n.subscribe("coalitionLeaderISLH/taskInfo2Coordinator", queueSize, &RosThread::sendTaskInfo2Coordinator, this);
 
 
 
@@ -1037,6 +1037,9 @@ bool RosThread::readConfigFile(QString filename)
 
         coordinatorRobotID = result["taskCoordinatorRobotID"].toInt();
         qDebug()<< " coordinatorRobotID " << coordinatorRobotID;
+
+        queueSize = result["queueSize"].toInt();
+        qDebug()<<result["queueSize"].toString();
 
         ownRobotID = result["robotID"].toInt();
 

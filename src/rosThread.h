@@ -140,6 +140,8 @@ private:
 
      int coordinatorRobotID;
 
+     int queueSize;
+
 
 public slots:
      void work();
