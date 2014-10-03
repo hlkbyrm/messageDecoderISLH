@@ -260,18 +260,14 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
     {
         QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
 
-        QStringList messageParts = dataParts.at(1).split(":",QString::SkipEmptyParts);
-
         // informs the coalition member's taskHandlerISLH of the new leader
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
 
-        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
+        msgCmd.sendingTime = dataParts.at(0).toUInt();
 
-        msgCmd.sendingTime = messageSubParts.at(0).toUInt();
-
-        msgCmd.cmdMessage = messageSubParts.at(1).toStdString();
+        msgCmd.cmdMessage = dataParts.at(1).toStdString();
 
         messageCmdFromLeaderPub.publish(msgCmd);
     }
