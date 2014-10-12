@@ -136,7 +136,7 @@ private:
 
      int ownRobotID;
 
-     int leaderRobotID;
+     int myLeaderRobotID;
 
      int coordinatorRobotID;
 

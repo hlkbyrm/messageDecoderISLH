@@ -108,6 +108,8 @@ void RosThread::handleIncomingMessage(ISLH_msgs::inMessage msg)
 
     int messageType = packageParts.at(1).toInt();
 
+    qDebug()<<"InComing Message->  MessageType: "<<messageType<<" Message: "<<package;
+
     switch(messageType)
     {
     case MT_TASK_INFO_FROM_LEADER_TO_ROBOT:
@@ -192,6 +194,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
     int cmdMessageSubType = packageParts.at(2).toInt();
 
+    qDebug()<<" Incoming command message from the leader -> MessageType: "<<cmdMessageSubType<<" Message: "<<package;
 
     if ( (cmdMessageSubType == CMD_L2R_START_HANDLING) || (cmdMessageSubType == CMD_L2R_MOVE_TO_TASK_SITE) || (cmdMessageSubType == CMD_L2R_MOVE_TO_GOAL_POSE) )
     {        
@@ -228,6 +231,8 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
         QStringList messageParts = dataParts.at(1).split(":",QString::SkipEmptyParts);
 
+        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
+
         if (messageParts.size() > 1) // I am new coalition leader
         {
             ISLH_msgs::newLeaderMessage msgNewLeader;
@@ -240,15 +245,19 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
             messageNewLeaderPub.publish(msgNewLeader);
 
-        }
+            myLeaderRobotID = ownRobotID;
+          }
+          else
+          {
+              QString tmpStr = QString(messageSubParts.at(1)).remove("NewLeaderID");
+              myLeaderRobotID = tmpStr.toInt();
+          }
 
         // informs the coalition member of the new leader
 
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
 
         msgCmd.cmdTypeID = cmdMessageSubType;
-
-        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
 
         msgCmd.sendingTime = messageSubParts.at(0).toUInt();
 
@@ -259,6 +268,9 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
     else if (cmdMessageSubType == CMD_L2R_I_AM_LEADER)
     {
         QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
+
+        QString tmpStr = QString(dataParts.at(1)).remove("NewLeaderID");
+        myLeaderRobotID = tmpStr.toInt();
 
         // informs the coalition member's taskHandlerISLH of the new leader
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
@@ -554,7 +566,7 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 
 
         // I am the leader
-        leaderRobotID = ownRobotID;
+        myLeaderRobotID = ownRobotID;
 
         // informs  taskHandlerISLH of the new leader
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
@@ -656,7 +668,7 @@ void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 {
     // If the robot is coaltion leader,
     // publish the message to the coalitionLeaderISLH node
-    if (ownRobotID==leaderRobotID)
+    if (ownRobotID==myLeaderRobotID)
     {
         ISLH_msgs::taskInfoFromRobotMessage directMsg;
 
@@ -1039,7 +1051,7 @@ bool RosThread::readConfigFile(QString filename)
 
         ownRobotID = result["robotID"].toInt();
 
-        leaderRobotID = ownRobotID;
+        myLeaderRobotID = ownRobotID;
 
     }
     file.close();
