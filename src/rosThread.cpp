@@ -165,7 +165,6 @@ void RosThread::pubTaskInfoFromRobot(ISLH_msgs::inMessage msg)
     {
         taskInfoMsg.infoMessageType = infoMessageSubType;
         taskInfoMsg.senderRobotID = dataParts.at(0).toInt();
-        taskInfoMsg.taskUUID = dataParts.at(1).toStdString();
         taskInfoMsg.reachingTime = dataParts.at(2).toInt();
     }
     else if (infoMessageSubType == INFO_R2L_REACHED_TO_GOAL)
@@ -756,11 +755,6 @@ void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 
             data.append(";");
 
-            temp = QString::fromStdString(msg.taskUUID);
-            data.append(temp);
-
-            data.append(";");
-
             temp = QString::number(msg.reachingTime);
             data.append(temp);
         }
@@ -821,7 +815,7 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
         temp = QString::number(taskInfoMsg.sendingTime);
         data.append(temp);
 
-        if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE)  || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) )
+        if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE) )
         {
             data.append("&");
 
@@ -851,6 +845,16 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
 
             data.append(QString::number(taskInfoMsg.encounteringRobotID));
 
+        }
+        else if (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE)
+        {
+            data.append("&");
+
+            data.append(QString::number(taskInfoMsg.senderRobotID));
+
+            data.append(";");
+
+            data.append(QString::fromStdString(taskInfoMsg.extraMsg)); // extraMsg -> "GOALPOSE"
         }
         else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
         {
