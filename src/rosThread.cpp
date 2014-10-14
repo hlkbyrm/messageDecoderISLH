@@ -376,6 +376,8 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
 
        taskInfoMsg.timeOutDuration = messageParts.at(7).toUInt();
 
+       taskInfoMsg.handlingDuration = messageParts.at(8).toUInt();
+
    }
    else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
    {
@@ -394,6 +396,8 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
        taskInfoMsg.startHandlingTime = messageParts.at(7).toUInt();
 
        taskInfoMsg.timeOutDuration = messageParts.at(8).toUInt();
+
+       taskInfoMsg.handlingDuration = messageParts.at(9).toUInt();
    }
    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
    {
@@ -796,7 +800,7 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
         directMsg.encounteringRobotID = taskInfoMsg.encounteringRobotID;
         directMsg.encounteringTime = taskInfoMsg.encounteringTime;
         directMsg.extraMsg = taskInfoMsg.extraMsg;
-        //directMsg.handlingDuration =  not assigned
+        directMsg.handlingDuration =  taskInfoMsg.handlingDuration;
         directMsg.infoTypeID = taskInfoMsg.infoTypeID;
         directMsg.posX = taskInfoMsg.posX;
         directMsg.posY = taskInfoMsg.posY;
@@ -853,6 +857,10 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
 
             data.append(QString::number(taskInfoMsg.timeOutDuration));
 
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.handlingDuration));
+
         }
         else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
         {
@@ -891,6 +899,10 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
             data.append(";");
 
             data.append(QString::number(taskInfoMsg.timeOutDuration));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.handlingDuration));
 
         }
         else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
