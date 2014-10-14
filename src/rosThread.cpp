@@ -846,16 +846,6 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
             data.append(QString::number(taskInfoMsg.encounteringRobotID));
 
         }
-        else if (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE)
-        {
-            data.append("&");
-
-            data.append(QString::number(taskInfoMsg.senderRobotID));
-
-            data.append(";");
-
-            data.append(QString::fromStdString(taskInfoMsg.extraMsg)); // extraMsg -> "GOALPOSE"
-        }
         else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
         {
             data.append("&");
