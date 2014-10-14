@@ -165,7 +165,7 @@ void RosThread::pubTaskInfoFromRobot(ISLH_msgs::inMessage msg)
     {
         taskInfoMsg.infoMessageType = infoMessageSubType;
         taskInfoMsg.senderRobotID = dataParts.at(0).toInt();
-        taskInfoMsg.reachingTime = dataParts.at(2).toInt();
+        taskInfoMsg.reachingTime = dataParts.at(1).toInt();
     }
     else if (infoMessageSubType == INFO_R2L_REACHED_TO_GOAL)
     {
@@ -374,6 +374,8 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
 
        taskInfoMsg.encounteringRobotID = messageParts.at(6).toUInt();
 
+       taskInfoMsg.timeOutDuration = messageParts.at(7).toUInt();
+
    }
    else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
    {
@@ -390,6 +392,8 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
        taskInfoMsg.encounteringRobotID = messageParts.at(6).toUInt();
 
        taskInfoMsg.startHandlingTime = messageParts.at(7).toUInt();
+
+       taskInfoMsg.timeOutDuration = messageParts.at(8).toUInt();
    }
    else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
    {
@@ -801,7 +805,7 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
         directMsg.sendingTime = taskInfoMsg.sendingTime;
         directMsg.startHandlingTime = taskInfoMsg.startHandlingTime;
         directMsg.taskUUID = taskInfoMsg.taskUUID;
-        // directMsg.timeOutDuration = not assigned
+        directMsg.timeOutDuration = taskInfoMsg.timeOutDuration;
 
         messageTaskInfoFromLeaderPub.publish(directMsg);
     }
@@ -845,6 +849,10 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
 
             data.append(QString::number(taskInfoMsg.encounteringRobotID));
 
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.timeOutDuration));
+
         }
         else if (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING_WITH_TASK_INFO)
         {
@@ -879,6 +887,10 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
             data.append(";");
 
             data.append(QString::number(taskInfoMsg.startHandlingTime));
+
+            data.append(";");
+
+            data.append(QString::number(taskInfoMsg.timeOutDuration));
 
         }
         else if ( (taskInfoMsg.infoTypeID == INFO_L2C_START_HANDLING) || (taskInfoMsg.infoTypeID == INFO_L2C_TASK_COMPLETED) )
