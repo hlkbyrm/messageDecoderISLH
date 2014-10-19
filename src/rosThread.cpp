@@ -15,7 +15,6 @@ RosThread::RosThread()
 
 void RosThread::work(){
 
-
     QString pathConf = QDir::homePath();
     pathConf.append("/ISL_workspace/src/configISL.json");
 
@@ -286,9 +285,10 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
     {
         ISLH_msgs::targetPoseListMessage targetPoseListMsg;
 
-        QString msgStr = QString::fromStdString(msg.message);
+        QStringList dataParts = packageParts.at(4).split("&",QString::SkipEmptyParts);
 
-          QStringList messageParts = msgStr.split(";", QString::SkipEmptyParts);
+        QStringList messageParts = dataParts.at(1).split(";",QString::SkipEmptyParts);
+
           for(int mpIndx=0; mpIndx < messageParts.size(); mpIndx++)
           {
               QStringList messageSubParts = messageParts.at(mpIndx).split(",", QString::SkipEmptyParts);
