@@ -194,7 +194,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
     qDebug()<<" Incoming command message from the leader -> MessageType: "<<cmdMessageSubType<<" Message: "<<package;
 
-    if ( (cmdMessageSubType == CMD_L2R_START_HANDLING) || (cmdMessageSubType == CMD_L2R_MOVE_TO_TASK_SITE) || (cmdMessageSubType == CMD_L2R_MOVE_TO_GOAL_POSE) )
+    if ( (cmdMessageSubType == CMD_L2R_START_OR_STOP_MISSION) || (cmdMessageSubType == CMD_L2R_START_HANDLING) || (cmdMessageSubType == CMD_L2R_MOVE_TO_TASK_SITE) || (cmdMessageSubType == CMD_L2R_MOVE_TO_GOAL_POSE) )
     {        
 
         ISLH_msgs::cmdFromLeaderMessage msgCmd;
