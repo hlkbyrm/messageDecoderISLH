@@ -221,6 +221,21 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
         msgCmd.cmdMessage = dataParts.at(1).toStdString();
 
         messageCmdFromLeaderPub.publish(msgCmd);
+
+        myLeaderRobotID = ownRobotID;
+
+        ISLH_msgs::newLeaderMessage msgNewLeader;
+
+        msgNewLeader.sendingTime = dataParts.at(0).toUInt();
+
+        msgNewLeader.infoTypeID = 2;
+
+        msgNewLeader.infoMessage = dataParts.at(1).toStdString();
+
+        messageNewLeaderPub.publish(msgNewLeader);
+
+        myLeaderRobotID = ownRobotID;
+
     }
     else if (cmdMessageSubType == CMD_L2R_LEADER_CHANGED)
     {
