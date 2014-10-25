@@ -228,7 +228,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
         msgNewLeader.sendingTime = dataParts.at(0).toUInt();
 
-        msgNewLeader.infoTypeID = 2;
+        msgNewLeader.infoTypeID = cmdMessageSubType;
 
         msgNewLeader.infoMessage = dataParts.at(1).toStdString();
 
@@ -481,8 +481,12 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
                 outmsg.robotid.push_back(msg.receiverRobotID[i]);
             }
         }
-        outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
-        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
+
+        if (msg.receiverRobotID.size()>1)
+        {
+            outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
+            outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
+        }
     }
     else if ( (msg.cmdTypeID == CMD_L2R_MOVE_TO_TASK_SITE) || (msg.cmdTypeID == CMD_L2R_MOVE_TO_GOAL_POSE) ){
         data.append("&");
@@ -635,7 +639,9 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
                 outmsg.messageIndx.push_back(0);
             }
         }
-        outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
+
+        if (msg.receiverRobotID.size()>1)
+            outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
     }
 
     messageOutPub.publish(outmsg);
