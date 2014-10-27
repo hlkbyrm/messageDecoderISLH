@@ -244,7 +244,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
         QStringList messageParts = dataParts.at(1).split(":",QString::SkipEmptyParts);
 
-        QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
+        //QStringList messageSubParts = messageParts.at(0).split("&",QString::SkipEmptyParts);
 
         if (messageParts.size() > 1) // I am new coalition leader
         {
@@ -262,8 +262,9 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
           }
           else
           {
-              QString tmpStr = QString(messageSubParts.at(1)).remove("NewLeaderID");
+              QString tmpStr = QString(messageParts.at(0)).remove("NewLeaderID");
               myLeaderRobotID = tmpStr.toInt();
+              qDebug()<<"pubCmdFromLeader->CMD_L2R_LEADER_CHANGED: myLeaderRobotID: "<<myLeaderRobotID;
           }
 
         // informs the coalition member of the new leader
@@ -272,9 +273,11 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
         msgCmd.cmdTypeID = cmdMessageSubType;
 
-        msgCmd.sendingTime = messageSubParts.at(0).toUInt();
+        msgCmd.sendingTime = dataParts.at(0).toUInt();
 
-        msgCmd.cmdMessage = messageSubParts.at(1).toStdString();
+        msgCmd.cmdMessage = dataParts.at(1).toStdString();
+
+        qDebug()<<"pubCmdFromLeader->CMD_L2R_LEADER_CHANGED: messageCmdFromLeaderPub->cmdMessage:"<<dataParts.at(1);
 
         messageCmdFromLeaderPub.publish(msgCmd);
     }
@@ -374,7 +377,7 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
 
    taskInfoMsg.senderRobotID = messageParts.at(0).toUInt();
 
-   if (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE)
+   if ( (taskInfoMsg.infoTypeID == INFO_L2C_INSUFFICIENT_RESOURCE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE) )
    {
 
        taskInfoMsg.taskUUID = messageParts.at(1).toStdString();
@@ -422,7 +425,7 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
    {   
        taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
    }
-   else if  ( (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE) || (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_TASK_SITE_POSE) )
+   else if   (taskInfoMsg.infoTypeID == INFO_L2C_WAITING_GOAL_POSE)
    {
        taskInfoMsg.extraMsg = messageParts.at(1).toStdString();
    }
@@ -694,6 +697,7 @@ void RosThread::sendCmd2Leaders(ISLH_msgs::cmd2LeadersMessage msg)
 //Outgoing task info message from the member robot to its leader
 void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 {
+    qDebug()<<"myLeaderRobotID:"<<myLeaderRobotID<<" ownRobotID:"<<ownRobotID;
     // If the robot is coaltion leader,
     // publish the message to the coalitionLeaderISLH node
     if (ownRobotID==myLeaderRobotID)
