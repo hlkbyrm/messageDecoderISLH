@@ -142,6 +142,8 @@ void RosThread::pubTaskInfoFromRobot(ISLH_msgs::inMessage msg)
 
     QString package = QString::fromStdString(msg.message);
 
+    qDebug()<< "pubTaskInfoFromRobot-> package :"<<package;
+
     QStringList packageParts = package.split("*",QString::SkipEmptyParts);
 
     int infoMessageSubType = packageParts.at(2).toInt();
@@ -187,6 +189,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
     // package = AA * messageType * messageSubType * datasize * data
     // data = sendingTime & message
 
+    qDebug()<< "pubCmdFromLeader-> package :"<<package;
 
     QStringList packageParts = package.split("*",QString::SkipEmptyParts);
 
@@ -334,6 +337,8 @@ void RosThread::pubCmdFromCoordinator(ISLH_msgs::inMessage msg)
 
     QString package = QString::fromStdString(msg.message);
 
+    qDebug()<< "pubCmdFromCoordinator-> package :"<<package;
+
     // package = AA * messageType * messageSubType * datasize * data
     // data = sendingTime & message
 
@@ -361,6 +366,8 @@ void RosThread::pubTaskInfoFromLeader(ISLH_msgs::inMessage msg)
 
 
    QString package = QString::fromStdString(msg.message);
+
+   qDebug()<< "pubTaskInfoFromLeader-> package :"<<package;
 
    // package = AA * messageType * messageSubType * datasize * data
    // data = sendingTime & message
@@ -450,6 +457,11 @@ void RosThread::sendNewLeaderInfoFromOldLeader(communicationISLH::inMessage msg)
 void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 {
 
+    qDebug()<< "sendCmd2Robots-> cmdType :"<<msg.cmdTypeID<<" cmdMessage: "<<QString::fromStdString(msg.cmdMessage);
+    for(int i=0; i<msg.receiverRobotID.size(); i++)
+    {
+        qDebug()<<" receiverRobotID: "<<msg.receiverRobotID[i];
+    }
     ISLH_msgs::outMessage outmsg;
 
     QString data;
@@ -653,11 +665,14 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 // Outgoing command message from the task coordinator to the leader(s)
 void RosThread::sendCmd2Leaders(ISLH_msgs::cmd2LeadersMessage msg)
 {
+
     ISLH_msgs::outMessage outmsg;
 
     int robotCnt = 0;
     for(int i=0; i<msg.leaderRobotID.size(); i++)
     {
+        qDebug()<< "sendCmd2Leaders-> leaderRobotID: "<<msg.leaderRobotID[i]<<" messageType :"<<msg.messageTypeID[i]<<" message: "<<QString::fromStdString(msg.message[i]);
+
         // if the robot is also coalition leader,
         // publish the message directly to the coalitionLeaderISL node
         if (msg.leaderRobotID[i] == ownRobotID)
@@ -698,6 +713,9 @@ void RosThread::sendCmd2Leaders(ISLH_msgs::cmd2LeadersMessage msg)
 void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 {
     qDebug()<<"myLeaderRobotID:"<<myLeaderRobotID<<" ownRobotID:"<<ownRobotID;
+
+    qDebug()<<"sendTaskInfo2Leader-> receiverRobotID: "<<msg.receiverRobotID<<" infoMessageType: "<<msg.infoMessageType;
+
     // If the robot is coaltion leader,
     // publish the message to the coalitionLeaderISLH node
     if (ownRobotID==myLeaderRobotID)
@@ -808,6 +826,8 @@ void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_ROBOT_TO_LEADER, msg.infoMessageType, data));
 
         messageOutPub.publish(outmsg);
+
+        qDebug()<<"sendTaskInfo2Leader-> outmsg: "<<QString::fromStdString(outmsg.message[0]);
     }
 }
 
@@ -815,6 +835,8 @@ void RosThread::sendTaskInfo2Leader(ISLH_msgs::taskInfo2LeaderMessage msg)
 //Outgoing task info message from the coalition leader to the task coordinator
 void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage taskInfoMsg)
 {
+
+     qDebug()<<"sendTaskInfo2Coordinator"<<taskInfoMsg.receiverRobotID<<" infoTypeID: "<<taskInfoMsg.infoTypeID;
 
     // If the robot is coodinator,
     // publish the message to the taskCoordinatorISLH node
@@ -959,6 +981,8 @@ void RosThread::sendTaskInfo2Coordinator(ISLH_msgs::taskInfo2CoordinatorMessage 
         outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_COORDINATOR, taskInfoMsg.infoTypeID, data));
 
         messageOutPub.publish(outmsg);
+
+        qDebug()<<"sendTaskInfo2Coordinator-> outmsg: "<<QString::fromStdString(outmsg.message[0]);
     }
 
 }
