@@ -275,7 +275,7 @@ void RosThread::pubCmdFromLeader(ISLH_msgs::inMessage msg)
 
         msgCmd.sendingTime = dataParts.at(0).toUInt();
 
-        msgCmd.cmdMessage = dataParts.at(1).toStdString();
+        msgCmd.cmdMessage = messageParts.at(0).toStdString();
 
         qDebug()<<"pubCmdFromLeader->CMD_L2R_LEADER_CHANGED: messageCmdFromLeaderPub->cmdMessage:"<<dataParts.at(1);
 
