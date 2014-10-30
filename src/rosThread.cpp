@@ -594,9 +594,11 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
 
         for(int i=0; i<msg.receiverRobotID.size(); i++)
         {
-            outmsg.messageIndx.push_back(0);
-
-            outmsg.robotid.push_back(msg.receiverRobotID[i]);
+            if (msg.receiverRobotID[i] !=ownRobotID)
+            {
+                outmsg.messageIndx.push_back(0);
+                outmsg.robotid.push_back(msg.receiverRobotID[i]);
+            }
         }
         outmsg.messageTypeID.push_back(MT_TASK_INFO_FROM_LEADER_TO_ROBOT);
 
@@ -659,7 +661,12 @@ void RosThread::sendCmd2Robots(ISLH_msgs::cmd2RobotsFromLeaderMessage msg)
             outmsg.message.push_back(makeDataPackage(MT_TASK_INFO_FROM_LEADER_TO_ROBOT, msg.cmdTypeID, data));
     }
 
-    messageOutPub.publish(outmsg);
+    if (outmsg.message.size()>0)
+    {
+        qDebug()<<"sendCmd2Robots-> outmsg[0]: "<<QString::fromStdString(outmsg.message[0]);
+        messageOutPub.publish(outmsg);
+    }
+
 }
 
 // Outgoing command message from the task coordinator to the leader(s)
